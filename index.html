@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Morse Émission & Écoute</title>
+
+<style>
+body {
+    background:#000;
+    color:#0f0;
+    font-family:Arial;
+    text-align:center;
+    padding:20px;
+}
+textarea {
+    width:90%;
+    height:80px;
+    font-size:16px;
+}
+button {
+    padding:10px 15px;
+    margin:5px;
+    font-size:16px;
+}
+#lamp {
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:#030;
+    margin:20px auto;
+    box-shadow:0 0 20px #0f0;
+}
+.on {
+    background:#0f0;
+    box-shadow:0 0 60px #0f0;
+}
+hr { margin:30px 0; }
+</style>
+</head>
+
+<body>
+
+<h1>🔊 Code Morse</h1>
+
+<h2>✍️ Émettre</h2>
+<textarea id="textInput" placeholder="Écris un message"></textarea><br>
+<button onclick="emitMorse()">▶ Jouer le Morse</button>
+
+<div id="lamp"></div>
+
+<hr>
+
+<h2>🎧 Écouter</h2>
+<button onclick="startListening()">🎙️ Démarrer l’écoute</button>
+<p id="status"></p>
+<p id="morseOutput"></p>
+<p id="textOutput"></p>
+
+<script>
+// =====================
+// TABLE MORSE
+// =====================
+const MORSE = {
+a:".-",b:"-...",c:"-.-.",d:"-..",e:".",f:"..-.",
+g:"--.",h:"....",i:"..",j:".---",k:"-.-",l:".-..",
+m:"--",n:"-.",o:"---",p:".--.",q:"--.-",r:".-.",
+s:"...",t:"-",u:"..-",v:"...-",w:".--",x:"-..-",
+y:"-.--",z:"--.."," ":"/"
+};
+
+const REVERSE = Object.fromEntries(
+    Object.entries(MORSE).map(e => e.reverse())
+);
+
+const unit = 150;
+const lamp = document.getElementById("lamp");
+
+// =====================
+// UTIL
+// =====================
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+// =====================
+// ÉMISSION MORSE
+// =====================
+async function emitMorse() {
+    const ctx = new AudioContext();
+    await ctx.resume();
+
+    let text = textInput.value.toLowerCase();
+    let morse = [...text].map(c => MORSE[c] || "").join(" ");
+
+    for (let s of morse) {
+        if (s === "." || s === "-") {
+            lamp.classList.add("on");
+
+            const osc = ctx.createOscillator();
+            osc.frequency.value = 700;
+            osc.connect(ctx.destination);
+            osc.start();
+
+            await sleep(s === "." ? unit : unit * 3);
+            osc.stop();
+
+            lamp.classList.remove("on");
+            await sleep(unit);
+        }
+        if (s === " ") await sleep(unit * 2);
+        if (s === "/") await sleep(unit * 4);
+    }
+}
+
+// =====================
+// ÉCOUTE MORSE
+// =====================
+let listening = false;
+
+async function startListening() {
+    if (listening) return;
+    listening = true;
+
+    status.innerText = "⏳ Demande d’autorisation micro...";
+    morseOutput.innerText = "";
+    textOutput.innerText = "";
+
+    try {
+        // 🔥 DEMANDE AUTORISATION MICRO
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        status.innerText = "🎧 Micro autorisé, écoute en cours...";
+
+        const audioCtx = new AudioContext();
+        await audioCtx.resume();
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        source.connect(analyser);
+
+        analyser.fftSize = 1024;
+        const data = new Uint8Array(analyser.fftSize);
+
+        let soundStart = null;
+        let lastSound = Date.now();
+        let morse = "";
+        const threshold = 15;
+
+        function loop() {
+            analyser.getByteTimeDomainData(data);
+
+            let volume = 0;
+            for (let i = 0; i < data.length; i++) {
+                volume += Math.abs(data[i] - 128);
+            }
+            volume /= data.length;
+
+            if (volume > threshold) {
+                if (!soundStart) soundStart = Date.now();
+                lastSound = Date.now();
+            } else if (soundStart) {
+                let duration = Date.now() - soundStart;
+                morse += duration < unit * 2 ? "." : "-";
+                soundStart = null;
+                morseOutput.innerText = morse;
+            }
+
+            if (Date.now() - lastSound > unit * 3 && !morse.endsWith(" ")) {
+                morse += " ";
+                morseOutput.innerText = morse;
+            }
+
+            if (listening) requestAnimationFrame(loop);
+        }
+
+        loop();
+
+        // ⏱️ arrêt automatique
+        setTimeout(() => {
+            listening = false;
+            stream.getTracks().forEach(t => t.stop());
+            status.innerText = "🛑 Écoute terminée";
+            textOutput.innerText = "Texte : " + decodeMorse(morse);
+        }, 8000);
+
+    } catch (e) {
+        status.innerText = "❌ Micro refusé ou bloqué";
+        listening = false;
+    }
+}
+
+// =====================
+// DÉCODAGE
+// =====================
+function decodeMorse(m) {
+    return m.trim().split(" ").map(c => REVERSE[c] || "").join("");
+}
+</script>
+
+</body>
+</html>
