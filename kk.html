@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interface de login — Mockup (parodie)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #2b2f36, #1e2126);
+      font-family: Arial, Helvetica, sans-serif;
+      color: #fff;
+    }
+    .card {
+      width: 420px;
+      background: #313338;
+      border-radius: 8px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+    .logo {
+      width: 120px;
+      height: auto;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #b5bac1;
+      margin-bottom: 24px;
+    }
+    .field {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: #b5bac1;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 4px;
+      border: none;
+      background: #1e1f22;
+      color: #fff;
+      font-size: 14px;
+    }
+    .field input:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      background: #5865f2;
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: not-allowed; /* non fonctionnel */
+      margin-top: 8px;
+    }
+    .disclaimer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #a0a6ad;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- Image centrale : mets ton image cac.png dans le même dossier ou dans le zip -->
+    <img src="cac.png" alt="Image centrale" class="logo" /><h1>Connexion</h1>
+<p class="subtitle">Ceci est une interface fictive (mockup)</p>
+
+<div class="field">
+  <label>Email ou nom d'utilisateur</label>
+  <input type="text" placeholder="exemple@email.com" disabled />
+</div>
+
+<div class="field">
+  <label>Mot de passe</label>
+  <input type="password" placeholder="********" disabled />
+</div>
+
+<button>Se connecter</button>
+
+<div class="disclaimer">
+  Parodie / démonstration visuelle uniquement — aucun identifiant n'est collecté.
+</div>
+
+  </div>
+</body>
+</html>
